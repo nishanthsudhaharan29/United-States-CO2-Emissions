@@ -1,0 +1,539 @@
+---
+title: "Fossil CO2 Emissions"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+format:
+    embed-resources: true
+runtime: shiny
+---
+
+
+ 
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(tbl2xts)
+library(dygraphs)
+library(pier)
+library(ggplot2)
+library(plotly)
+library(scales)
+library(treemapify)
+library(paletteer)
+library(treemap)
+library(readxl) 
+library(remotes) 
+library(tidyverse) 
+library(ggalt) 
+library(usmap) 
+library(ggplot2) 
+library(vtable) 
+library(maps) 
+library(lubridate) 
+library(stringr)
+library(scales)
+library(stats)
+library(leaflet)
+library(ggrepel)
+library(RColorBrewer)
+library(gghighlight)
+library(treemap)
+library(gridExtra)
+library(readr)
+library(mapproj)
+library(scales)
+library(plotly)
+library(RColorBrewer)
+library('unikn') 
+
+# Viz 1
+Final_Project_data <- read_csv("List of countries by carbon dioxide emissions - Copy.csv")
+# create world map data
+# create world map data
+world_map <- map_data("world") 
+# join data with world map data
+data_map <- Final_Project_data %>% left_join(world_map, by = c("Countries" = "region"))
+data_map_nona <- data_map %>% filter(!is.na(lat) & !is.na(long))
+
+# filter data for top 10 countries
+# filter data for top 10 countries
+data_top10 <- Final_Project_data %>%
+  filter(!grepl("World", Countries)) %>%
+  arrange(desc(`Fossil CO2 emissions(Mt CO2) 1990`)) %>%
+  slice_max(n = 10, order_by = `Fossil CO2 emissions(Mt CO2) 1990`)
+# reorder factor levels of Countries in decreasing order of CO2
+data_top10$Countries <- fct_reorder(data_top10$Countries, data_top10$`Fossil CO2 emissions(Mt CO2) 1990`, .desc = TRUE)
+
+# Viz 2
+# create world map data
+world_map1 <- map_data("world")
+# join data with world map data
+data_map1 <- Final_Project_data %>% left_join(world_map1, by = c("Countries" = "region"))
+data_map_nona1 <- data_map1 %>% filter(!is.na(lat) & !is.na(long))
+
+# filter data for top 10 countries
+# filter data for top 10 countries
+data_top101 <- Final_Project_data %>%
+  filter(!grepl("World", Countries)) %>%
+  arrange(desc(`Fossil CO2 emissions(Mt CO2) 2005`)) %>%
+  slice_max(n = 10, order_by = `Fossil CO2 emissions(Mt CO2) 2005`)
+# reorder factor levels of Countries in decreasing order of CO2
+data_top101$Countries <- fct_reorder(data_top101$Countries, data_top101$`Fossil CO2 emissions(Mt CO2) 2005`, .desc = TRUE)
+
+# Viz 3
+# create world map data
+world_map2 <- map_data("world")
+# join data with world map data
+data_map2 <- Final_Project_data %>% left_join(world_map2, by = c("Countries" = "region"))
+data_map_nona2 <- data_map %>% filter(!is.na(lat) & !is.na(long))
+
+# filter data for top 10 countries
+# filter data for top 10 countries
+data_top102 <- Final_Project_data %>%
+  filter(!grepl("World", Countries)) %>%
+  arrange(desc(`Fossil CO2 emissions(Mt CO2) 1990`)) %>%
+  slice_max(n = 10, order_by = `Fossil CO2 emissions(Mt CO2) 2017`)
+# reorder factor levels of Countries in decreasing order of CO2
+data_top102$Countries <- fct_reorder(data_top102$Countries, data_top102$`Fossil CO2 emissions(Mt CO2) 2017`, .desc = TRUE)
+
+# Viz 4
+ t <- data_map %>% filter(!grepl("World", Countries)) %>% select(Countries,`Fossil CO2 emissions(Mt CO2) 2017`,`Fossil CO2 emissions(Mt CO2) 1990`, `Fossil CO2 emissions(Mt CO2) 2005`) %>% 
+  pivot_longer(cols = -Countries, names_to = "Year_m", values_to = "CO2 Emissions") %>%
+  mutate(Year = case_when(Year_m == "Fossil CO2 emissions(Mt CO2) 1990" ~ 1990,
+Year_m == 'Fossil CO2 emissions(Mt CO2) 2005' ~ 2005,
+Year_m == 'Fossil CO2 emissions(Mt CO2) 2017' ~ 2017))
+ 
+# Viz 5
+# load the data
+stateco2 <- read_xlsx('State energy-related CO2 Emissions by year.xlsx')
+# load prof's package
+library(remotes)
+# Clean the data in excel file first: I deleted 1st – 4th and last 3 (57th –59th) rows, and only keep the column of 2020 
+# convert US state name to abbreviations
+stateco2 <- stateco2 %>% mutate(State_abb = state.abb[match(State,state.name)]) %>% 
+  relocate(State_abb, .after = State)
+stateco2[is.na(stateco2)] <- "DC"
+# rename the colname
+colnames(stateco2)[1] ="State_name"
+colnames(stateco2)[2] ="state"
+```
+Page 1
+===================================== 
+   
+ Row {.tabset .tabset-fade}
+-------------------------------------
+### 1990 
+
+
+#### International Fossil CO2 Emissions in 1990
+
+```{r fig50, fig.height = 5, fig.width = 3}
+# create a world map with CO2 emission values
+p <- ggplot(data_map_nona, aes(x = long, y = lat, group = group, fill = `Fossil CO2 emissions(Mt CO2) 1990`)) +
+  geom_polygon() +
+  scale_fill_gradientn(colours = brewer.pal(9, "YlOrRd"), guide = guide_colorbar(barwidth = 20, barheight = 0.5)) +
+  labs(x = "", y = "",fill="Fossil CO2 emissions\n(Mt CO2) " ,title = " ") +
+  theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.line = NULL )
+ggplotly(p, tooltip = c("group", "Fossil CO2 emissions(Mt CO2) 1990"), labels = c(format(x = scales::comma, big.mark = ",", accuracy = 0), "Mt CO2")) 
+
+```   
+
+
+#### 
+```{r figg, fig.align = 'center', fig.height = 3, fig.width = 3.5}
+
+ggplot(data_top10, aes(x = Countries, y = `Fossil CO2 emissions(Mt CO2) 1990`)) +
+  geom_col(fill = "red") +
+  labs(x = " ", y = " ", 
+       title = "Highest Emissions (Million Tonnes)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    theme(axis.line = element_line(color = 'black'), 
+          axis.ticks.x = element_line(size = 5), 
+          axis.text.x = element_text(face = "bold"),
+        axis.text.y = element_text(face = "bold"),
+          panel.background = element_rect(fill = 'white'), 
+          plot.title = element_text(hjust = 0.5)) +
+    gghighlight(Countries %in% c('USA'),
+                unhighlighted_params = aes(size=.1), 
+                label_params=list(direction='y',nudge_x=10)) 
+
+```
+ 
+
+
+### 2005 {.tabset .tabset-fade}
+
+#### International Fossil CO2 Emissions in 2005
+    
+```{r fig502, fig.height = 5, fig.width = 3}
+# create a world map with CO2 emission values
+p1 <- ggplot(data_map_nona1, aes(x = long, y = lat, group = group, fill = `Fossil CO2 emissions(Mt CO2) 2005`)) +
+  geom_polygon() +
+  scale_fill_gradientn(colours = brewer.pal(9, "YlOrRd"), guide = guide_colorbar(barwidth = 20, barheight = 0.5)) +
+  labs(x = "", y = "",fill="Fossil CO2 emissions\n(Mt CO2) " , title = " ") +
+  theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.line = NULL )
+ggplotly(p1, tooltip = c("group", "Fossil CO2 emissions(Mt CO2) 2005"), labels = c(format(x = scales::comma, big.mark = ",", accuracy = 0), "Mt CO2")) 
+```
+
+#### 
+
+```{r r figg1, fig.align = 'center', fig.height = 3, fig.width = 3.5}
+# plot bar chart
+ggplot(data_top101, aes(x = Countries, y = `Fossil CO2 emissions(Mt CO2) 2005`)) +
+  geom_col(fill = "red") +
+  labs(x = " ", y = " ", 
+       title = "Highest Emissions (Million Tonnes)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    theme(axis.line = element_line(color = 'black'), 
+          axis.ticks.x = element_line(size = 5), 
+          axis.text.x = element_text(face = "bold"),
+        axis.text.y = element_text(face = "bold"),
+          panel.background = element_rect(fill = 'white'), 
+          plot.title = element_text(hjust = 0.5)) +
+    gghighlight(Countries %in% c('USA'),
+                unhighlighted_params = aes(size=.1), 
+                label_params=list(direction='y',nudge_x=10))
+```
+
+### 2017
+
+#### International Fossil CO2 Emissions in 2017
+
+```{r fig503, fig.height = 5, fig.width = 3}
+# create a world map with CO2 emission values
+p2 <- ggplot(data_map_nona2, aes(x = long, y = lat, group = group, fill = `Fossil CO2 emissions(Mt CO2) 2017`)) +
+  geom_polygon() +
+  scale_fill_gradientn(colours = brewer.pal(9, "YlOrRd"), guide = guide_colorbar(barwidth = 20, barheight = 0.5)) +
+  labs(x = "", y = "", fill="Fossil CO2 emissions\n(Mt CO2) " ,title = " ") +
+  theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.line = NULL )
+ggplotly(p2, tooltip = c("group", "Fossil CO2 emissions(Mt CO2) 2017"), labels = c(format(x = scales::comma, big.mark = ",", accuracy = 0), "Mt CO2")) 
+```
+
+####
+
+```{r r figg3, fig.align = 'center', fig.height = 3, fig.width = 3.5}
+# plot bar chart
+ggplot(data_top102, aes(x = Countries, y = `Fossil CO2 emissions(Mt CO2) 2017`)) +
+  geom_col(fill = "red") +
+  labs(x = " ", y = " ", 
+       title = "Highest Emissions (Million Tonnes)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    theme(axis.line = element_line(color = 'black'), 
+          axis.ticks.x = element_line(size = 5), 
+          axis.text.x = element_text(face = "bold"),
+        axis.text.y = element_text(face = "bold"),
+          panel.background = element_rect(fill = 'white'), 
+          plot.title = element_text(hjust = 0.5)) +
+    gghighlight(Countries %in% c('USA'),
+                unhighlighted_params = aes(size=.1), 
+                label_params=list(direction='y',nudge_x=10)) 
+```
+
+Page 2
+===================================== 
+    
+Row
+-------------------------------------
+
+### CO2 Emissions - United States vs China
+    
+```{r fig2a, fig.height = 3, fig.width = 5}
+t %>% ggplot(aes(x = Year, y = `CO2 Emissions`, group = Countries, color = Countries)) +
+  geom_line(size = 1.5, show.legend = TRUE) +
+  scale_color_manual(values = c("USA" = "red", "China" = "blue")) +
+  labs(x = " ", y = "CO2 Emissions in Mt", title = " ") +
+  scale_x_continuous(limits = c(1990, 2017), breaks = c(1990, 2005, 2017)) +
+  gghighlight(Countries %in% c("USA", "China"),
+              unhighlighted_params = aes(size = 0.1),
+              label_params = list(direction = "y", nudge_x = 10, hjust = 0)) +
+  geom_text(data = filter(t, Countries == "USA" & Year == 2017),
+            aes(x = Year, y = `CO2 Emissions`, label = "USA"),
+            nudge_y = 20, color = "red") +
+  geom_text(data = filter(t, Countries == "China" & Year == 2017),
+            aes(x = Year, y = `CO2 Emissions`, label = "China"),
+            nudge_y = -20, color = "blue") +
+  theme_minimal(base_family = "serif") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+```
+ 
+### United States Fossil CO2 Emissions in 2020
+    
+```{r fig2b, fig.height = 3, fig.width = 5}
+plot_usmap(data = stateco2[,2:3], regions = "states", values = "2020") + 
+  scale_fill_continuous(low = "white", high = "red", name = "CO2 Emissions\n(Mt CO2)") + 
+  theme(legend.position = "right") + 
+  labs(title = " ")
+``` 
+
+Row
+-------------------------------------
+    
+###
+    
+```{r fig2, fig.height = 2, fig.width = 6}
+# A sentence to plot: 
+s1 <- c("From 2005, CO2 Emissions from", "United States gradually decreases.")
+t1 <- c("But, how can we reduce it further?")
+
+# Create a new plot of type "slide"
+
+mark(labels = s1,
+     x = 0.15, y = .75, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.5,
+     new_plot = "slide") 
+mark(labels = t1,
+     x = .15, y = .35, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.5,
+     new_plot = "none")
+```
+    
+###
+
+```{r fig3, fig.height = 2, fig.width = 6}
+# A sentence to plot: 
+s2 <- c("Doesn't the red color standout?")
+t2 <- c("What part of the United States is that?")
+u2<- c(" Why are the emissins so high there?")
+
+# Create a new plot (of type "slide"):
+mark(labels = s2,
+     x = 0.15, y = .75, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.5,
+     new_plot = "slide")
+mark(labels = t2,
+     x = 0.15, y = .55, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.5,
+     new_plot = "none")
+mark(labels = u2,
+     x = 0.15, y = .35, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.5,
+     new_plot = "none")
+```
+
+
+Page 3
+===================================== 
+
+Row {data-height=650}
+-------------------------------------
+
+### United States Fossil CO2 Emissions in 2020
+
+```{r fig2c, fig.height = 3, fig.width = 5}
+
+stateco2$`2020` <- format(stateco2$`2020`, decimal.mark = ".", digits = 2)
+stateco2$hover <- with(stateco2, paste(State_name, '<br>', "CO2 Emissions:", `2020`))
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+plot_geo(stateco2, locationmode = 'USA-states') %>% add_trace(
+  z = stateco2$`2020`, text = ~hover, locations = ~state, 
+  color = ~2020, colorscale = 'Red') %>%  
+  colorbar(title = "CO2 Emissions\n(Mt CO2)") %>% 
+  layout(
+    title = NULL,
+    geo = g
+  )
+```
+
+Row {data-height=350}
+-------------------------------------
+   
+### 
+
+```{r fig1, fig.height = 1, fig.width = 10}
+# A sentence to plot: 
+t3 <- c("Yes, that's Texas, with the highest CO2 Emissions in United States!")
+
+# Create a new plot (of type "slide"):
+mark(labels = t3,
+     x = 0.1, y = .50, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.4,
+     new_plot = "slide")
+
+```   
+
+Page 4
+===================================== 
+
+Row
+-------------------------------------
+
+### CO2 Emissions by Sector
+    
+```{r figd, fig.height = 3, fig.width = 5}
+#Visualization 6
+b <- tibble(Sector = c("Industrial","Transportation","Electric Power","Commercial","Residential"),
+               Emission = c(226.2,192.7,176.9,8.1,9.1))
+treemap(b,
+       index=c("Sector"),
+       vSize="Emission",
+       vColor="Emission",
+       type="value",
+       palette=c("#FFEFEF","pink","indianred"),
+       fontcolor.labels = "black",
+  fontface.labels = c("bold", rep("plain")),
+  fontfamily.title = "sans",
+  fontfamily.labels = "sans",
+  fontfamily.legend = "sans",
+  border.col="white",
+       title.legend="CO2 Emissions (Million Tonnes)",
+       title = " ",
+       format.legend = list(scientific = FALSE, big.mark = " "))
+```
+ 
+### CO2 Emissions by Fuel
+    
+```{r fige, fig.height = 3, fig.width = 5}
+# Visualization 7
+data <- data.frame(label = c('Coal','Natural Gas','Petroleum'),
+                   value = c(83.6,243.9,296.5),
+                   color = c("Coal"='pink',"Petroleum"='salmon',"Natural Gas"='indianred'))
+advanced.pie <- data %>%
+    pier() %>%
+    pie.size(inner=70, outer=100, width = 600, height = 450) %>%
+    pie.header(text='Texas CO2 Emissions', font='Impact', location='pie-center') %>%
+    pie.subtitle(text='by Fuel') %>%
+  pie.tooltips()%>%
+   pie.labels(mainLabel = list(font = 'Impact',
+                              fontSize = 14))
+htmlwidgets::onRender(advanced.pie, 'document.getElementsByTagName("svg")[0].setAttribute("viewBox", "")')
+``` 
+
+Row
+-------------------------------------
+    
+###
+    
+```{r fig4, fig.height = 2, fig.width = 6}
+# A sentence to plot: 
+s1 <- c("Industrial, Electric Power, and Transportation", "sectors emit the most CO2")
+t1 <- c("Negligible Residential and Commercial" ,"emissions")
+
+# Create a new plot of type "slide"
+
+mark(labels = s1,
+     x = 0.1, y = .75, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.2,
+     new_plot = "slide") 
+mark(labels = t1,
+     x = .1, y = .35, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.2,
+     new_plot = "none")
+```
+    
+###
+
+```{r fig5, fig.height = 2, fig.width = 6}
+# A sentence to plot: 
+s1 <- c("High CO2 emissions from Petroleum and Natural", "Gas combustion")
+
+
+# Create a new plot of type "slide"
+
+mark(labels = s1,
+     x = 0.1, y = .65, y_layout = .03,
+     col_bg = Pinky,
+     cex = 1.2,
+     new_plot = "slide") 
+
+```
+
+
+
+
+Page 5
+===================================== 
+Row {data-height=750}
+-------------------------------------
+
+### CO2 Emissions by Sector and Fuel
+
+```{r fig100, fig.height = 5, fig.width = 3}
+# Visualization 8
+data <- tibble(Sector = c(rep("Industrial \n Sector",3),rep("Transportation \n Sector",3),rep("Electric Power",3)),
+               Fuel = c('Coal','Petroleum','Natural Gas','Coal','Petroleum','Natural Gas','Coal','Petroleum','Natural Gas'),
+               Emission = c(3.0,109.3,119.3,3.0,182.4,15.2,83.0,3.0,93.8))
+data$Sector <- factor(data$Sector,levels = c("Transportation \n Sector", "Industrial \n Sector", "Electric Power", "Commercial","Residential"))
+finall<-ggplot(data, aes(x = Sector, y = Emission,fill=Fuel)) + 
+  geom_col(position = 'dodge')+
+  theme_light()+
+    theme(
+    panel.grid.major.x = element_blank(),
+    legend.position = "bottom"
+  )+
+      labs(x = ' ', y = 'CO2 Emissions (Million Tonnes)',fill='') +
+   theme(axis.text.x  = element_text(face = 'bold'))+
+  theme(axis.text.x  = element_text(size=10))+
+    scale_fill_brewer(palette = "OrRd")
+ggplotly(finall)
+```
+
+Row {data-height=250}
+-------------------------------------
+   
+### 
+
+```{r fig6, fig.height = 1, fig.width = 6}
+# A sentence to plot: 
+s1 <- c("Switch to Electric Vehicles!")
+
+
+# Create a new plot of type "slide"
+
+mark(labels = s1,
+     x = 0.25, y = .55, y_layout = .03,
+     col_bg = Seegruen,
+     cex = 1.5,
+     new_plot = "slide") 
+
+```   
+    
+### 
+
+```{r fig7, fig.height = 1, fig.width = 6}
+# A sentence to plot: 
+s1 <- c("Switch to Solar Power!")
+
+
+# Create a new plot of type "slide"
+
+mark(labels = s1,
+     x = 0.3, y = .55, y_layout = .03,
+     col_bg = Seegruen,
+     cex = 1.5,
+     new_plot = "slide") 
+```
+
